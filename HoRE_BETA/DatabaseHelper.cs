@@ -278,11 +278,8 @@ namespace HoRE_BETA
             }
         }
 
-
-        // Keep the old TestConnection method for backward compatibility if needed
         public static bool TestConnection()
         {
-            // This now just checks if our global connection is open
             if (_connection != null && _connection.State == System.Data.ConnectionState.Open)
             {
                 Console.WriteLine("Database connection is active.");

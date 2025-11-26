@@ -45,8 +45,12 @@ public class Program
         }
 
         string gender = chooseGender();
+        bool isMaleVar = isMale(gender);
+        bool isFemaleVar = !isMale(gender);
+        bool isFullClothed = false;
         string hairStyle = chooseHairStyle();
         string hairColor = chooseHairColor();
+        string facialHair;
         string eyeColor = chooseEyeColor();
         string shirtType = chooseShirtType();
         string shirtColor = chooseShirtColor();
@@ -292,6 +296,21 @@ public class Program
             }
         }
     }
+
+    static bool isMale(string gender)
+    {
+        if (gender == "Male")
+        {
+            Console.WriteLine("gender is male");
+            return true;
+        }
+        else
+        {
+            Console.WriteLine("gender is female");
+            return false;
+        }
+    }
+
     static string chooseHairStyle()
     {
         while (true)
@@ -588,7 +607,7 @@ public class Program
         if (!DatabaseHelper.InitializeDatabase())
         {
             Console.WriteLine("Failed to connect to database. Exiting...");
-            return;
+            
         }
 
         try
