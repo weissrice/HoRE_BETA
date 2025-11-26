@@ -1,41 +1,19 @@
 ﻿using System;
+using HoRE_BETA;
 using MySql.Data.MySqlClient;
 public class Program
 {
-    public static void connectToDatabase()
-    {
-        string connectionString = "Server=localhost;Database=character_project;User ID=root;Password=W31ssR1ce277353!;";
-        using MySqlConnection connection = new MySqlConnection(connectionString);
-        try 
-        {
-            connection.Open();
-            Console.WriteLine("Connection Open.");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error connecting to the database: {ex.Message}");
-        }
-        finally
-        {
-            if (connection.State == System.Data.ConnectionState.Open)
-            {
-                connection.Close();
-                Console.WriteLine("Connection Closed.");
-            }
-        }
-    }
-
-        static void showMainMenu()
+    static void showMainMenu()
     {
         Console.Clear();
-        connectToDatabase();
         Console.WriteLine("\n===== Harvests of Ruined Earth =====");
         Console.WriteLine("=====================");
         Console.WriteLine("===== Main Menu =====");
         Console.WriteLine("[1] Start New Game");
-        Console.WriteLine("[2] Campaign Mode");
-        Console.WriteLine("[3] Credits");
-        Console.WriteLine("[4] Exit");
+        Console.WriteLine("[2] Load Character");
+        Console.WriteLine("[3] Campaign Mode");
+        Console.WriteLine("[4] Credits");
+        Console.WriteLine("[5] Exit");
         Console.WriteLine("=====================");
     }
 
@@ -44,7 +22,6 @@ public class Program
         Console.Clear();
         Console.WriteLine("===== Character Creation =====");
 
-        // Get player name and farm name
         string playerName = "";
         while (string.IsNullOrWhiteSpace(playerName))
         {
@@ -67,7 +44,6 @@ public class Program
             }
         }
 
-        // Character customization
         string gender = chooseGender();
         string hairStyle = chooseHairStyle();
         string hairColor = chooseHairColor();
@@ -80,7 +56,6 @@ public class Program
         string shoesColor = chooseShoesColor();
         string accessory = chooseAccessory();
 
-        // Skill point allocation
         int skillPoints = 10;
         int woodChopping = 0, fishing = 0, harvesting = 0, crafting = 0, foraging = 0, mining = 0, combat = 0;
 
@@ -130,7 +105,29 @@ public class Program
             }
         }
 
-        // Display final character
+        bool insertSuccess = DatabaseHelper.InsertCharacter(
+            playerName,
+            farmName,
+            gender,
+            hairStyle,
+            hairColor,
+            eyeColor,
+            shirtType,
+            shirtColor,
+            pantsType,
+            pantsColor,
+            shoesType,
+            shoesColor,
+            accessory,
+            woodChopping,
+            fishing,
+            harvesting,
+            crafting,
+            foraging,
+            mining,
+            combat
+        );
+
         Console.Clear();
         Console.WriteLine("===== Character Created Successfully =====");
         Console.WriteLine($"Player Name: {playerName}");
@@ -153,6 +150,126 @@ public class Program
         Console.WriteLine($"Combat: {combat}");
 
         Console.Write("\nPress any key to return to menu...");
+        Console.ReadKey(true);
+    }
+
+    static void loadCharacterMenu()
+    {
+        while (true)
+        {
+            Console.Clear();
+            Console.WriteLine("===== Load Character =====");
+
+            var characters = DatabaseHelper.LoadAllCharacters();
+
+            if (characters.Count == 0)
+            {
+                Console.WriteLine("No saved characters found!");
+                Console.WriteLine("\nPress any key to return to menu...");
+                Console.ReadKey(true);
+                return;
+            }
+
+            for (int i = 0; i < characters.Count; i++)
+            {
+                Console.WriteLine($"[{i + 1}] {characters[i].PlayerName} - {characters[i].FarmName} (Created: {characters[i].CreatedDate:MM/dd/yyyy})");
+            }
+
+            Console.WriteLine($"[{characters.Count + 1}] View Character Details");
+            Console.WriteLine($"[{characters.Count + 2}] Delete Character");
+            Console.WriteLine($"[{characters.Count + 3}] Back to Main Menu");
+            Console.Write("\nChoose an option: ");
+
+            if (byte.TryParse(Console.ReadLine(), out byte choice))
+            {
+                if (choice >= 1 && choice <= characters.Count)
+                {
+                    var selectedCharacter = characters[choice - 1];
+                    playWithCharacter(selectedCharacter);
+                }
+                else if (choice == characters.Count + 1)
+                {
+                    viewCharacterDetails(characters);
+                }
+                else if (choice == characters.Count + 2)
+                {
+                    deleteCharacter(characters);
+                }
+                else if (choice == characters.Count + 3)
+                {
+                    return;
+                }
+                else
+                {
+                    Console.WriteLine("Invalid choice!");
+                    Console.ReadKey(true);
+                }
+            }
+            else
+            {
+                Console.WriteLine("Invalid input!");
+                Console.ReadKey(true);
+            }
+        }
+    }
+
+    static void viewCharacterDetails(List<Character> characters)
+    {
+        Console.Write("Enter character number to view details: ");
+        if (int.TryParse(Console.ReadLine(), out int charNum) && charNum >= 1 && charNum <= characters.Count)
+        {
+            Console.Clear();
+            characters[charNum - 1].DisplayCharacter();
+            Console.WriteLine("\nPress any key to continue...");
+            Console.ReadKey(true);
+        }
+        else
+        {
+            Console.WriteLine("Invalid character number!");
+            Console.ReadKey(true);
+        }
+    }
+
+    static void deleteCharacter(List<Character> characters)
+    {
+        Console.Write("Enter character number to delete: ");
+        if (int.TryParse(Console.ReadLine(), out int charNum) && charNum >= 1 && charNum <= characters.Count)
+        {
+            var characterToDelete = characters[charNum - 1];
+            Console.Write($"Are you sure you want to delete {characterToDelete.PlayerName}? (Y/N): ");
+            string confirm = Console.ReadLine()?.ToUpper();
+
+            if (confirm == "Y" || confirm == "YES")
+            {
+                if (DatabaseHelper.DeleteCharacter(characterToDelete.Id))
+                {
+                    Console.WriteLine("Character deleted successfully!");
+                }
+                else
+                {
+                    Console.WriteLine("Failed to delete character!");
+                }
+            }
+            else
+            {
+                Console.WriteLine("Deletion cancelled.");
+            }
+            Console.ReadKey(true);
+        }
+        else
+        {
+            Console.WriteLine("Invalid character number!");
+            Console.ReadKey(true);
+        }
+    }
+
+    static void playWithCharacter(Character character)
+    {
+        Console.Clear();
+        Console.WriteLine($"===== Playing as {character.PlayerName} =====");
+        character.DisplayCharacter();
+
+        Console.WriteLine("\nPress any key to return to menu...");
         Console.ReadKey(true);
     }
 
@@ -468,31 +585,44 @@ public class Program
 
     public static void Main(string[] args)
     {
-        
-
-        while (true)
+        if (!DatabaseHelper.InitializeDatabase())
         {
-            showMainMenu();
-            Console.Write("Enter your choice (1-4): ");
-            byte choice = getChoice();
-            Console.WriteLine();
+            Console.WriteLine("Failed to connect to database. Exiting...");
+            return;
+        }
 
-            switch (choice)
+        try
+        {
+            while (true)
             {
-                case 1: goNewGame(); break;
-                case 2: showCampaign(); break;
-                case 3: showCredits(); break;
-                case 4:
-                    Console.Clear();
-                    Console.WriteLine("===== Program Terminated =====");
-                    return;
-                default:
-                    Console.Clear();
-                    Console.WriteLine("Invalid choice!");
-                    Console.WriteLine("Press any key to return to menu...");
-                    Console.ReadKey(true);
-                    break;
+                showMainMenu();
+                Console.Write("Enter your choice (1-5): ");
+                byte choice = getChoice();
+                Console.WriteLine();
+
+                switch (choice)
+                {
+                    case 1: goNewGame(); break;
+                    case 2: loadCharacterMenu(); break;
+                    case 3: showCampaign(); break;
+                    case 4: showCredits(); break;
+                    case 5:
+                        Console.Clear();
+                        Console.WriteLine("===== Program Terminated =====");
+                        DatabaseHelper.CloseDatabase();
+                        return;
+                    default:
+                        Console.Clear();
+                        Console.WriteLine("Invalid choice!");
+                        Console.WriteLine("Press any key to return to menu...");
+                        Console.ReadKey(true);
+                        break;
+                }
             }
+        }
+        finally
+        {
+            DatabaseHelper.CloseDatabase();
         }
     }
 }
