@@ -53,5 +53,7 @@ namespace HoRE_BETA
             Console.WriteLine($"Created: {CreatedDate:yyyy-MM-dd HH:mm}");
             Console.WriteLine("=====================");
         }
+
+        private static readonly List<Character> characters = new();
     }
 }

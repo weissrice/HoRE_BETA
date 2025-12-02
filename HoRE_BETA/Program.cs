@@ -3,6 +3,8 @@ using HoRE_BETA;
 using MySql.Data.MySqlClient;
 public class Program
 {
+    private static List<Character> characters = new List<Character>();
+
     static void showMainMenu()
     {
         Console.Clear();
@@ -156,6 +158,7 @@ public class Program
         Console.Write("\nPress any key to return to menu...");
         Console.ReadKey(true);
     }
+
 
     static void loadCharacterMenu()
     {
@@ -607,7 +610,7 @@ public class Program
         if (!DatabaseHelper.InitializeDatabase())
         {
             Console.WriteLine("Failed to connect to database. Exiting...");
-            
+                
         }
 
         try

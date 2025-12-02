@@ -272,11 +272,14 @@ namespace HoRE_BETA
                 command.Parameters.AddWithValue("@Combat", combat);
                 command.Parameters.AddWithValue("@CreatedDate", DateTime.Now);
 
+
                 int rowsAffected = command.ExecuteNonQuery();
                 Console.WriteLine($"Character saved to database! Rows affected: {rowsAffected}");
                 return rowsAffected > 0;
             }
         }
+
+        
 
         public static bool TestConnection()
         {
